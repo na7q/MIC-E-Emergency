@@ -2,19 +2,19 @@ import socket
 import aprslib
 import datetime
 
-APRS_IS_HOST = 'rotate.aprs2.net'
+APRS_IS_HOST = 'theconnectdesk.com'
 APRS_IS_PORT = 14580
-APRS_FILTER = 'b/CALL-*' #User specific call or any other filter
-APRS_CALLSIGN = 'CALL-E' #
-APRS_PASSCODE = '2802'
+APRS_FILTER = 'b/CALL-*'
+APRS_CALLSIGN = 'CALL-E'
+APRS_PASSCODE = 'PASS'
 MESSAGE_COUNTER = 1  # Initialize the message counter
 
-def send_aprs_packet(aprs_socket, destination_callsign, message):
+def send_aprs_packet(aprs_socket, destination_callsign):
     global MESSAGE_COUNTER
     current_time = datetime.datetime.now().strftime("%H:%M:%S")  # Get current time in HH:MM:SS format
     aprs_message = "{}>APRS::SMSGTE   :@1234567890 Emergency Beacon Detected from {} at {}{{{:d}\r\n".format(APRS_CALLSIGN, destination_callsign, current_time, MESSAGE_COUNTER)
     aprs_socket.sendall(aprs_message.encode())
-    print("Sent APRS packet to {}: {}".format(destination_callsign, message))
+    print("Sent APRS packet to {}: {} Message {}".format(destination_callsign, current_time, MESSAGE_COUNTER))
     MESSAGE_COUNTER += 1
 
 def receive_aprs_messages():
@@ -22,7 +22,7 @@ def receive_aprs_messages():
     aprs_socket.connect((APRS_IS_HOST, APRS_IS_PORT))
     print("Connected to APRS server with callsign: {}".format(APRS_CALLSIGN))
 
-    login_str = 'user {} pass {} vers MicE-Detection 0.1b\r\n'.format(APRS_CALLSIGN, APRS_PASSCODE)
+    login_str = 'user {} pass {} vers MicE-Gateway 0.1b\r\n'.format(APRS_CALLSIGN, APRS_PASSCODE)
     filter_command = '#filter {}\r\n'.format(APRS_FILTER)
     aprs_socket.sendall(login_str.encode())
     aprs_socket.sendall(filter_command.encode())
@@ -59,7 +59,7 @@ def receive_aprs_messages():
                         print("mtype:", aprs_packet['mtype'])
                         
                         # Send a response APRS packet using the same socket
-                        send_aprs_packet(aprs_socket, aprs_packet['from'], "Emergency Beacon Detected!")
+                        send_aprs_packet(aprs_socket, aprs_packet['from'])
 
                 except Exception as e:
                     print("Error parsing packet:", e)
