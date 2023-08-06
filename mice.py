@@ -2,7 +2,7 @@ import socket
 import aprslib
 import datetime
 
-APRS_IS_HOST = 'theconnectdesk.com'
+APRS_IS_HOST = 'rotate.aprs2.net'
 APRS_IS_PORT = 14580
 APRS_FILTER = 'b/CALL-*'
 APRS_CALLSIGN = 'CALL-E'
