@@ -48,7 +48,7 @@ def receive_aprs_messages():
                     # Initialize an APRS object and parse the received packet
                     aprs_packet = aprslib.parse(line.strip())
                     
-                    # Check if mtype is "M1" (En Route)
+                    # Check if mtype is "M8" (Emergency)
                     if 'mtype' in aprs_packet and aprs_packet['mtype'] == 'Emergency':
                         print("En Route APRS packet:")
                         print("Source callsign:", aprs_packet['from'])
