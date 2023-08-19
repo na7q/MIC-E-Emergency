@@ -5,15 +5,16 @@ import subprocess
 
 APRS_IS_HOST = 'rotate.aprs2.net'
 APRS_IS_PORT = 14580
-APRS_FILTER = 'b/CALL-*'
+APRS_FILTER = 'b/CALL*'
 APRS_CALLSIGN = 'CALL-E'
-APRS_PASSCODE = 'PASS'
+APRS_PASSCODE = 'PASSCODE'
 MESSAGE_COUNTER = 1  # Initialize the message counter
 
 
 def send_curl_request(destination_callsign, current_time):
     curl_message = "Emergency Beacon Detected from {} at {}".format(destination_callsign, current_time)
-    curl_command = "curl -d '{}' command here".format(curl_message)
+    curl_command = "curl -d '{}' URL HERE".format(curl_message)
+    print(curl_command)
     
     try:
         subprocess.run(curl_command, shell=True, check=True)
@@ -44,27 +45,27 @@ def receive_aprs_messages():
     aprs_socket.sendall(filter_command.encode())
     print("Sent login information and filter command.")
 
-    buffer = ""
+    buffer = b""  # Use bytes buffer
     try:
         while True:
             data = aprs_socket.recv(1024)
             if not data:
                 break
             
-            buffer += data.decode()
-            lines = buffer.split('\n')
+            buffer += data  # Append received bytes to the buffer
+            lines = buffer.split(b'\n')
 
             for line in lines[:-1]:
-                if line.startswith('#'):
+                if line.startswith(b'#'):
                     continue
 
-                print("Received raw APRS packet: {}".format(line.strip()))
+                print("Received raw APRS packet:", line)
 
                 try:
                     # Initialize an APRS object and parse the received packet
                     aprs_packet = aprslib.parse(line.strip())
                     
-                    # Check if mtype is "Emergency"
+                    # Check if mtype is "M1" (En Route)
                     if 'mtype' in aprs_packet and aprs_packet['mtype'] == 'Emergency':
                         print("En Route APRS packet:")
                         print("Source callsign:", aprs_packet['from'])
@@ -84,7 +85,7 @@ def receive_aprs_messages():
                 
                 
     except KeyboardInterrupt:
-        print("Stopping APRS Packets.")
+        print("Stopping APRS reception.")
     finally:
         aprs_socket.close()
 
