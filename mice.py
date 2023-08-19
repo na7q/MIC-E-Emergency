@@ -1,6 +1,7 @@
 import socket
 import aprslib
 import datetime
+import subprocess
 
 APRS_IS_HOST = 'rotate.aprs2.net'
 APRS_IS_PORT = 14580
@@ -9,13 +10,28 @@ APRS_CALLSIGN = 'CALL-E'
 APRS_PASSCODE = 'PASS'
 MESSAGE_COUNTER = 1  # Initialize the message counter
 
+
+def send_curl_request(destination_callsign, current_time):
+    curl_message = "Emergency Beacon Detected from {} at {}".format(destination_callsign, current_time)
+    curl_command = "curl -d '{}' command here".format(curl_message)
+    
+    try:
+        subprocess.run(curl_command, shell=True, check=True)
+        print("Executed curl command successfully.")
+    except subprocess.CalledProcessError as e:
+        print("Error executing curl command:", e)
+
 def send_aprs_packet(aprs_socket, destination_callsign):
     global MESSAGE_COUNTER
     current_time = datetime.datetime.now().strftime("%H:%M:%S")  # Get current time in HH:MM:SS format
-    aprs_message = "{}>APRS::SMSGTE   :@1234567890 Emergency Beacon Detected from {} at {}{{{:d}\r\n".format(APRS_CALLSIGN, destination_callsign, current_time, MESSAGE_COUNTER)
+    #There must be 9 characters between :: and : on the line below to send APRS messages.
+    aprs_message = "{}>APRS::CALL      :Emergency Beacon Detected from {} at {}{{{:d}\r\n".format(APRS_CALLSIGN, destination_callsign, current_time, MESSAGE_COUNTER)
     aprs_socket.sendall(aprs_message.encode())
     print("Sent APRS packet to {}: {} Message {}".format(destination_callsign, current_time, MESSAGE_COUNTER))
     MESSAGE_COUNTER += 1
+
+    print("CURL SEND")
+    send_curl_request(destination_callsign, current_time)
 
 def receive_aprs_messages():
     aprs_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -48,7 +64,7 @@ def receive_aprs_messages():
                     # Initialize an APRS object and parse the received packet
                     aprs_packet = aprslib.parse(line.strip())
                     
-                    # Check if mtype is "M8" (Emergency)
+                    # Check if mtype is "Emergency"
                     if 'mtype' in aprs_packet and aprs_packet['mtype'] == 'Emergency':
                         print("En Route APRS packet:")
                         print("Source callsign:", aprs_packet['from'])
@@ -68,7 +84,7 @@ def receive_aprs_messages():
                 
                 
     except KeyboardInterrupt:
-        print("Stopping APRS reception.")
+        print("Stopping APRS Packets.")
     finally:
         aprs_socket.close()
 
