@@ -44,21 +44,21 @@ def receive_aprs_messages():
     # Set the socket_ready flag to indicate that the socket is ready for keepalives
     socket_ready = True
 
-    buffer = ""
+    buffer = b""  # Use bytes buffer
     try:
         while True:
             data = aprs_socket.recv(1024)
             if not data:
                 break
             
-            buffer += data.decode()
-            lines = buffer.split('\n')
+            buffer += data  # Append received bytes to the buffer
+            lines = buffer.split(b'\n')
 
             for line in lines[:-1]:
-                if line.startswith('#'):
+                if line.startswith(b'#'):
                     continue
 
-                print("Received raw APRS packet: {}".format(line.strip()))
+                print("Received raw APRS packet:", line)
 
                 try:
                     # Initialize an APRS object and parse the received packet
